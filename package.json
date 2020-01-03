@@ -1,0 +1,27 @@
+{
+	"name": "rashtcafeapi",
+	"version": "1.0.0",
+	"description": "��#\u0000 \u0000r\u0000a\u0000s\u0000h\u0000t\u0000C\u0000a\u0000f\u0000e\u0000A\u0000p\u0000i\u0000\r\u0000 \u0000",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "nodemon app.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mansourlotfi/rashtCafeApi.git"
+	},
+	"author": "mansourlotfi@gmail.com",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/mansourlotfi/rashtCafeApi/issues"
+	},
+	"homepage": "https://github.com/mansourlotfi/rashtCafeApi#readme",
+	"dependencies": {
+		"body-parser": "^1.19.0",
+		"express": "^4.17.1"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.2"
+	}
+}
