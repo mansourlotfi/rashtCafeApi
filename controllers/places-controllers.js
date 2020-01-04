@@ -31,15 +31,20 @@ const getPlaceById = async (req, res, next) => {
 	res.json({ place: place.toObject({ getters: true }) }); //with getters we get ride of underscore of Id _id => id
 };
 
-const getPlacesByUserId = (req, res, next) => {
+const getPlacesByUserId = async (req, res, next) => {
 	const userId = req.params.uid;
-	const places = DUMMY_PLACES.filter((p) => {
-		return p.creator === userId;
-	});
+
+	let places;
+	try {
+		places = await Place.find({ creator: userId });
+	} catch (err) {
+		const error = new HttpError('مشکل در دریافت اطلاعات', 500);
+		return next(error);
+	}
 	if (!places || places.length === 0) {
 		return next(new HttpError('مکانی برای یوزر آیدی ارائه شده یافت نشد', 404));
 	}
-	res.json({ places });
+	res.json({ places: places.map((place) => place.toObject({ getters: true })) });
 };
 
 const createPlace = async (req, res, next) => {
@@ -64,17 +69,29 @@ const createPlace = async (req, res, next) => {
 	res.status(201).json({ place: createdPlace });
 };
 
-const updatePlace = (req, res, next) => {
+const updatePlace = async (req, res, next) => {
 	const { title, description, address } = req.body;
 	const placeId = req.body.pid;
-	const updatedPlace = { ...DUMMY_PLACES.find((p) => p.id === placeId) };
-	const placeIndex = DUMMY_PLACES.findIndex((p) => p.id === placeId);
+
+	let place;
+	try {
+		place = await Place.findById(placeId);
+	} catch (err) {
+		const error = new HttpError('مشکل در بروزرسانی محل مورد نظر', 500);
+		return next(error);
+	}
+
 	updatedPlace.title = title;
 	updatedPlace.description = description;
 	updatePlace.address = address;
-	DUMMY_PLACES[placeIndex] = updatedPlace;
+	try {
+		await place.save();
+	} catch (err) {
+		const error = new HttpError('مشکل در ذخیر اطلاعات در سرور', 500);
+		return next(error);
+	}
 
-	res.status(200).json({ place: updatedPlace });
+	res.status(200).json({ place: place.toObject({ getters: true }) });
 };
 const deletePlace = (req, res, next) => {
 	const placeId = req.body.pid;
