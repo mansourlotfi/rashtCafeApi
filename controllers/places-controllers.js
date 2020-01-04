@@ -1,6 +1,7 @@
 const HttpError = require('../models/http-error');
 const uuid = require('uuid/v4');
 const { validationResult } = require('express-validator');
+const Place = require('../models/place');
 
 let DUMMY_PLACES = [
 	{
@@ -13,16 +14,21 @@ let DUMMY_PLACES = [
 ];
 1;
 
-const getPlaceById = (req, res, next) => {
+const getPlaceById = async (req, res, next) => {
 	const placeId = req.params.pid;
-	const place = DUMMY_PLACES.find((p) => {
-		return p.id === placeId;
-	});
+
+	let place;
+	try {
+		place = await Place.findById(placeId);
+	} catch (err) {
+		const error = new HttpError('مشکل در پیدا کردن مکان مورد نظر', 500);
+		return next(error);
+	}
 
 	if (!place) {
 		throw new HttpError('مکانی برای آیدی ارائه شده یافت نشد', 404);
 	}
-	res.json({ place });
+	res.json({ place: place.toObject({ getters: true }) }); //with getters we get ride of underscore of Id _id => id
 };
 
 const getPlacesByUserId = (req, res, next) => {
@@ -36,20 +42,25 @@ const getPlacesByUserId = (req, res, next) => {
 	res.json({ places });
 };
 
-const createPlace = (req, res, next) => {
+const createPlace = async (req, res, next) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		throw new HttpError('اطلاعات وارد شده مناسب نمی باشد', 422);
 	}
 	const { title, description, address, creator } = req.body;
-	const createdPlace = {
-		id: uuid(),
+	const createdPlace = new Place({
 		title,
 		description,
+		image: 'https://www.docker.host/wp-content/uploads/2019/12/docker_transport.png',
 		address,
 		creator
-	};
-	DUMMY_PLACES.unshift(createdPlace);
+	});
+	try {
+		await createdPlace.save();
+	} catch (err) {
+		const error = new HttpError('مشکل در ایجاد مکان مورد نظر', 500);
+		return next(error);
+	}
 	res.status(201).json({ place: createdPlace });
 };
 
