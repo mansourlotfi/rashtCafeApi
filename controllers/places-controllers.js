@@ -12,7 +12,8 @@ let DUMMY_PLACES = [
 		creator: 'u1'
 	}
 ];
-1;
+
+//getPlaceById
 
 const getPlaceById = async (req, res, next) => {
 	const placeId = req.params.pid;
@@ -31,6 +32,8 @@ const getPlaceById = async (req, res, next) => {
 	res.json({ place: place.toObject({ getters: true }) }); //with getters we get ride of underscore of Id _id => id
 };
 
+//getPlacesByUserId
+
 const getPlacesByUserId = async (req, res, next) => {
 	const userId = req.params.uid;
 
@@ -46,6 +49,8 @@ const getPlacesByUserId = async (req, res, next) => {
 	}
 	res.json({ places: places.map((place) => place.toObject({ getters: true })) });
 };
+
+//createPlace
 
 const createPlace = async (req, res, next) => {
 	const errors = validationResult(req);
@@ -68,6 +73,8 @@ const createPlace = async (req, res, next) => {
 	}
 	res.status(201).json({ place: createdPlace });
 };
+
+//updatePlace
 
 const updatePlace = async (req, res, next) => {
 	const { title, description, address } = req.body;
@@ -93,10 +100,28 @@ const updatePlace = async (req, res, next) => {
 
 	res.status(200).json({ place: place.toObject({ getters: true }) });
 };
-const deletePlace = (req, res, next) => {
-	const placeId = req.body.pid;
-	DUMMY_PLACES = DUMMY_PLACES.filter((p) => p.id != placeId);
-	res.status(200).json({ message: 'مکان مورد نظر حذف شد' });
+
+//deletePlace
+
+const deletePlace = async (req, res, next) => {
+	const placeId = req.params.pid;
+
+	let place;
+	try {
+		place = await Place.findById(placeId);
+	} catch (err) {
+		const error = new HttpError('در پیدا کردن داده مورد نظر برای حذف مشکلی وجود دارد', 500);
+		return next(error);
+	}
+
+	try {
+		await place.remove();
+	} catch (err) {
+		const error = new HttpError('در حذف داده مورد نظر مشکلی وجود دارد', 500);
+		return next(error);
+	}
+
+	res.status(200).json({ message: 'با موفقیت حذف شد' });
 };
 
 exports.getPlaceById = getPlaceById;
