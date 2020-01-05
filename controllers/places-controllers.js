@@ -5,16 +5,6 @@ const Place = require('../models/place');
 const User = require('../models/user');
 const mongoose = require('mongoose');
 
-let DUMMY_PLACES = [
-	{
-		id: 'p1',
-		title: 'cafe keik',
-		description: 'a very beatifull place',
-		address: 'mantariye',
-		creator: 'u1'
-	}
-];
-
 //getPlaceById
 
 const getPlaceById = async (req, res, next) => {
@@ -101,7 +91,7 @@ const createPlace = async (req, res, next) => {
 const updatePlace = async (req, res, next) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		return next(new HttpError('Invalid inputs passed, please check your data.', 422));
+		return next(new HttpError('اطلاعات وارد شده صحیح نمی باشد', 422));
 	}
 
 	const { title, description } = req.body;
@@ -111,7 +101,7 @@ const updatePlace = async (req, res, next) => {
 	try {
 		place = await Place.findById(placeId);
 	} catch (err) {
-		const error = new HttpError('Something went wrong, could not update place.', 500);
+		const error = new HttpError('مشکل در ارتباط با سرور', 500);
 		return next(error);
 	}
 
@@ -121,7 +111,7 @@ const updatePlace = async (req, res, next) => {
 	try {
 		await place.save();
 	} catch (err) {
-		const error = new HttpError('Something went wrong, could not update place.', 500);
+		const error = new HttpError('مشکل در ارتباط با سرور برای ذخیره داده', 500);
 		return next(error);
 	}
 
@@ -137,12 +127,12 @@ const deletePlace = async (req, res, next) => {
 	try {
 		place = await Place.findById(placeId).populate('creator');
 	} catch (err) {
-		const error = new HttpError('Something went wrong, could not delete place.', 500);
+		const error = new HttpError('Something went wrong.', 500);
 		return next(error);
 	}
 
 	if (!place) {
-		const error = new HttpError('Could not find place for this id.', 404);
+		const error = new HttpError('مکان مورد نظر وجود ندارد', 404);
 		return next(error);
 	}
 
@@ -154,7 +144,7 @@ const deletePlace = async (req, res, next) => {
 		await place.creator.save({ session: sess });
 		await sess.commitTransaction();
 	} catch (err) {
-		const error = new HttpError('Something went wrong, could not delete place.', 500);
+		const error = new HttpError('Something went wrong.', 500);
 		return next(error);
 	}
 
