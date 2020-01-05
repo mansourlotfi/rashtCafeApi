@@ -27,7 +27,8 @@ const getPlaceById = async (req, res, next) => {
 	}
 
 	if (!place) {
-		throw new HttpError('مکانی برای آیدی ارائه شده یافت نشد', 404);
+		const error = new HttpError('مکانی برای آیدی ارائه شده یافت نشد', 404);
+		return next(error);
 	}
 	res.json({ place: place.toObject({ getters: true }) }); //with getters we get ride of underscore of Id _id => id
 };
@@ -55,9 +56,10 @@ const getPlacesByUserId = async (req, res, next) => {
 const createPlace = async (req, res, next) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		throw new HttpError('اطلاعات وارد شده مناسب نمی باشد', 422);
+		return next(new HttpError('اطلاعات وارد شده مناسب نمی باشد', 422));
 	}
 	const { title, description, address, creator } = req.body;
+
 	const createdPlace = new Place({
 		title,
 		description,
@@ -77,24 +79,29 @@ const createPlace = async (req, res, next) => {
 //updatePlace
 
 const updatePlace = async (req, res, next) => {
-	const { title, description, address } = req.body;
-	const placeId = req.body.pid;
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return next(new HttpError('Invalid inputs passed, please check your data.', 422));
+	}
+
+	const { title, description } = req.body;
+	const placeId = req.params.pid;
 
 	let place;
 	try {
 		place = await Place.findById(placeId);
 	} catch (err) {
-		const error = new HttpError('مشکل در بروزرسانی محل مورد نظر', 500);
+		const error = new HttpError('Something went wrong, could not update place.', 500);
 		return next(error);
 	}
 
-	updatedPlace.title = title;
-	updatedPlace.description = description;
-	updatePlace.address = address;
+	place.title = title;
+	place.description = description;
+
 	try {
 		await place.save();
 	} catch (err) {
-		const error = new HttpError('مشکل در ذخیر اطلاعات در سرور', 500);
+		const error = new HttpError('Something went wrong, could not update place.', 500);
 		return next(error);
 	}
 
@@ -110,18 +117,18 @@ const deletePlace = async (req, res, next) => {
 	try {
 		place = await Place.findById(placeId);
 	} catch (err) {
-		const error = new HttpError('در پیدا کردن داده مورد نظر برای حذف مشکلی وجود دارد', 500);
+		const error = new HttpError('Something went wrong, could not delete place.', 500);
 		return next(error);
 	}
 
 	try {
 		await place.remove();
 	} catch (err) {
-		const error = new HttpError('در حذف داده مورد نظر مشکلی وجود دارد', 500);
+		const error = new HttpError('Something went wrong, could not delete place.', 500);
 		return next(error);
 	}
 
-	res.status(200).json({ message: 'با موفقیت حذف شد' });
+	res.status(200).json({ message: 'Deleted place.' });
 };
 
 exports.getPlaceById = getPlaceById;
