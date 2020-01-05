@@ -2,6 +2,8 @@ const HttpError = require('../models/http-error');
 const uuid = require('uuid/v4');
 const { validationResult } = require('express-validator');
 const Place = require('../models/place');
+const User = require('../models/user');
+const mongoose = require('mongoose');
 
 let DUMMY_PLACES = [
 	{
@@ -67,8 +69,26 @@ const createPlace = async (req, res, next) => {
 		address,
 		creator
 	});
+
+	let user;
 	try {
-		await createdPlace.save();
+		user = await User.findById(creator);
+	} catch (err) {
+		const error = new HttpError('ریلیشن بین مکان ثبتی و کاربر وجود ندارد', 500);
+		return next(error);
+	}
+	if (!user) {
+		const error = new HttpError('یوزر  در پایگاه داده وجود ندارد', 404);
+		return next(error);
+	}
+
+	try {
+		const sess = await mongoose.startSession();
+		sess.startTransaction();
+		await createdPlace.save({ session: sess });
+		user.places.push(createdPlace);
+		await user.save({ session: sess });
+		await sess.commitTransaction();
 	} catch (err) {
 		const error = new HttpError('مشکل در ایجاد مکان مورد نظر', 500);
 		return next(error);
