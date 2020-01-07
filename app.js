@@ -24,7 +24,7 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-	.connect('mongodb+srv://mansour:fidelio123@cluster0-bgsnp.mongodb.net/places?retryWrites=true&w=majority')
+	.connect('mongodb://root:phtOerFGH6nQ0i1bXOGtzMNN@s7.liara.ir:31274/rashtcafedb?authSource=admin&replicaSet=rs0')
 	.then(() => {
 		app.listen(5000);
 	})

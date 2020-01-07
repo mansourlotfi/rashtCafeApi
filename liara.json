@@ -1,0 +1,7 @@
+{
+	"port": 5000,
+	"scripts": {
+		"start": "node build/app.js",
+		"build": "gulp build"
+	}
+}
